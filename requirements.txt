@@ -1,0 +1,5 @@
+pyserial
+opencv-python
+Pillow
+customtkinter
+numpy

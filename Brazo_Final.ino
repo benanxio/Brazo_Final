@@ -11,8 +11,10 @@ Servo servo4; // PINZA ABRE 180, CIERRA 165
 String entradaSerial = "";         // String para almacenar entrada
 bool entradaCompleta = false;  // Indicar si el String está completo
  
-int pin = 3;    // pin de conexión PWM al servo
-int pin2 = 5;
+int pin=3;
+int pin2=5;
+int pin3=6;
+int pin4=9;
 int pulsoMinimo = 580;  // Duración en microsegundos del pulso para girar 0º
 int pulsoMaximo = 2500; // Duración en microsegundos del pulso para girar 180º
 int angulo = 0; // Variable para guardar el angulo que deseamos de giro
@@ -23,32 +25,25 @@ int pos;
  
 void setup()
 {
-  servo1.attach(pin, pulsoMinimo, pulsoMaximo);
-  servo2.attach(pin2,pulsoMinimo, pulsoMaximo);
+  //Inicializamos el servo y el Serial:
+  servo1.attach(pin); //Servo base
+  servo2.attach(pin2); //Servp codo derecho 
+  servo3.attach(pin3); //Servo codo izquierdo
+  servo4.attach(pin4); //Servo pinza
   Serial.begin(9600);
   lcd.init();
   lcd.backlight();
+  servo3.write(140); // codo izquierdo arriba
+  delay(2000);
+  servo4.write(180); //abre pinza
+  delay(2000);
 }
  
 void loop()
 {
   if(entradaCompleta) {
-  
-    posServox = posServox/8;
-    posServoy = posServoy/4;
-    servo1.write(posServox);
-    servo2.write(posServoy);
-    lcd.print("X = "+String(posServox)+"Y"+String(posServoy));
-    delay(20);
-       
-    if (cad2 == "movobj\n"){
-        //posServo = posServo / 4;
-        for(int x=posServox;x<=170;x++){
-         servo1.write(x);
-         delay(10);
-        }
-     }
-      
+   
+
     if (cad2 == "ClassColorR\n"){
         color = cad2.substring(10);//Obtengo el color que voy a clasificar
         moverRojo(color);
@@ -96,14 +91,78 @@ void serialEvent(){
 
 
 void moverRojo(String c){
-  delay(5000);//En vez de esto van las instrucciones de movimiento
+  recoger();
+  for (int i = 90 ; i>40;i--){
+    servo1.write(i); //Movemos el servo de base a angulo 0 lado Derecho
+     delay(10);
+   }
+  soltar();
   Serial.print(c);
 }
 void moverVerde(String c){
-  delay(5000);//En vez de esto van las instrucciones de movimiento
+  recoger();
+  for (int i = 90 ; i>20;i--){
+    servo1.write(i); //Movemos el servo de base a angulo 0 lado Derecho
+     delay(10);
+   }
+  soltar();
   Serial.print(c);
 }
 void moverAzul(String c){
-  delay(5000);//En vez de esto van las instrucciones de movimiento
-  Serial.print(c);
+  recoger();
+  for (int i = 90 ; i>0;i--){
+    servo1.write(i); //Movemos el servo de base a angulo 0 lado Derecho
+     delay(10);
+   }
+  soltar();
+  Serial.print(c);}
+
+void recoger(){
+  servo1.write(posServox / 4);
+   delay(2000);
+   servo2.write(posServoy / 3);
+   delay(2000);
+  ///////////////////MOVIMIENTO PREDETERMINADO///////////////////////
+
+   ////////////////////////////////////////////////////
+   for (int i=140;i>100;i--){ //codo izquierdo abajo
+    servo3.write(i);
+    delay(15);
+   }
+   delay(3000);
+   ////////////////////////////////////////////////////
+   servo4.write(155); // cierra pinza
+   delay(1000);
+   ///////////////////////////////////////////////////
+   for (int i=100;i<=140;i++){ //codo izquierdo arriba
+    servo3.write(i);
+    delay(15);
+   }
+   delay(2000);
+}
+
+
+void soltar(){
+   delay(3000);
+   ///////////////////////////////////////////////////
+   for (int i=140;i>100;i--){ //codo izquierdo abajo
+    servo3.write(i);
+    delay(15);
+   }
+   delay(2000);
+   //////////////////////////////////////////////////
+   servo4.write(180); //abre pinza
+   delay(2000);
+   //////////////////////////////////////////////////
+   for (int i=100;i<=140;i++){ //codo izquierdo arriba
+    servo3.write(i);
+    delay(15);
+   }
+   delay(2000);
+   ////////////////////////////////////////////////////
+   for (int i=0;i<=90;i++){ //vuelve a la posicion inicial
+    servo1.write(i);
+    delay(15);
+   }
+   delay(1000);
 }

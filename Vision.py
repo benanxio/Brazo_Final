@@ -8,7 +8,7 @@ from Index import Principal
 clasificar = False
 detectado = False
 inicio, previo = 0, 0  # Para contar los segundos de espera
-tDetect = 5  # Tiempo de espera antes de la clasificacion
+tDetect = 3  # Tiempo de espera antes de la clasificacion
 clascolor = ""
 actualizar = False  # Se accede desde el archivo Index para actualizar los datos recibidos
 

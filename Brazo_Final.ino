@@ -26,14 +26,19 @@ void setup()
   servo1.attach(pin, pulsoMinimo, pulsoMaximo);
   servo2.attach(pin2,pulsoMinimo, pulsoMaximo);
   Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
 }
  
 void loop()
 {
   if(entradaCompleta) {
   
-    posServox = posServox / 4;
+    posServox = posServox/8;
+    posServoy = posServoy/4;
     servo1.write(posServox);
+    servo2.write(posServoy);
+    lcd.print("X = "+String(posServox)+"Y"+String(posServoy));
     delay(20);
        
     if (cad2 == "movobj\n"){

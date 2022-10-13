@@ -1,10 +1,8 @@
 
-from time import sleep
 import tkinter
-from tkinter import font
 import customtkinter as ctk
 from PIL import Image, ImageTk
-from tkinter import messagebox,ttk
+from tkinter import messagebox, ttk
 import Funciones
 import Vision
 
@@ -14,11 +12,12 @@ import pandas as pd
 import os
 from datetime import datetime
 
+
 class Principal():
-    
-    def GuardarCSV(self,color):
+
+    def GuardarCSV(self, color):
         now = datetime.now()
-        data = [now.strftime("%d/%m/%y %H:%M:%S"),0,0,0]
+        data = [now.strftime("%d/%m/%y %H:%M:%S"), 0, 0, 0]
         if color == "R":
             data[1] = 1
         if color == "G":
@@ -26,63 +25,60 @@ class Principal():
         if color == "B":
             data[3] = 1
         global filename
+
         filename = f'Data({now.strftime("%d_%m_%y")}).csv'
-        
+
+        datos = {
+            'Fecha': data[0],
+            'Rojo': data[1],
+            'Verde': data[2],
+            'Azul': data[3]
+        }
+
         if os.path.isfile(filename):
             with open(filename, 'a', newline='') as my_file:
-                fieldnames = ['Fecha', 'Rojo', 'Verde', 'Azul']
-                writer = csv.DictWriter(my_file, fieldnames=fieldnames,delimiter=',')
-                writer.writerow({
-                    'Fecha':data[0],
-                    'Rojo': data[1],
-                    'Verde': data[2],
-                    'Azul': data[3]
-                })
+                writer = csv.DictWriter(
+                    my_file, fieldnames=list(datos.keys()), delimiter=',')
+                writer.writerow(datos)
                 my_file.close()
         else:
             with open(filename, 'w', newline='') as my_file:
-                fieldnames = ['Fecha', 'Rojo', 'Verde', 'Azul']
-                writer = csv.DictWriter(my_file, fieldnames=fieldnames,delimiter=',')
+                writer = csv.DictWriter(
+                    my_file, fieldnames=list(datos.keys()), delimiter=',')
                 writer.writeheader()
-                writer.writerow({
-                    'Fecha':data[0],
-                    'Rojo': data[1],
-                    'Verde': data[2],
-                    'Azul': data[3]
-                })
+                writer.writerow(datos)
                 my_file.close()
-                
-        return filename
-            
-                
-    def insertarDatos():
-        global treeview,label_R,label_G,label_B,filename
+
+    def mostrarDatos():
+        global treeview, label_R, label_G, label_B, filename
         treeview.delete(*treeview.get_children())
-        
+
         if os.path.isfile(filename):
-            
-            datos = pd.read_table(filename,sep=',')
+
+            datos = pd.read_table(filename, sep=',')
             datosT = datos.to_numpy().tolist()
             val = datos.sum().values.tolist()[1:]
             label_R.configure(text=f"{val[0]}")
             label_G.configure(text=f"{val[1]}")
             label_B.configure(text=f"{val[2]}")
-            
-            for dato in datosT:
-                treeview.insert("",'end',text=dato[0],values=(dato[1],dato[2],dato[3]))
-            
+
+            for dato in reversed(datosT):
+                treeview.insert("", 'end', text=dato[0], values=(
+                    dato[1], dato[2], dato[3]))
+
         else:
             pass
-        
-            
+
     def App(self):
-        global treeview,label_R,label_G,label_B,puertos,devices,filename
-        
+        global treeview, label_R, label_G, label_B, puertos, devices, filename
+
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        ICONS_DIR = os.path.join(BASE_DIR,'Resources')
-        
-        ctk.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-        ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+        ICONS_DIR = os.path.join(BASE_DIR, 'Resources')
+
+        # Modes: "System" (standard), "Dark", "Light"
+        ctk.set_appearance_mode("System")
+        # Themes: "blue" (standard), "green", "dark-blue"
+        ctk.set_default_color_theme("blue")
         app = ctk.CTk()
         app.resizable(0, 0)
 
@@ -95,8 +91,9 @@ class Principal():
         x_cordinate = (screen_width - window_width)//2
         y_cordinate = (screen_height - window_height)//4
 
-        app.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
-        app.iconbitmap(default=os.path.join(ICONS_DIR,"Blank.ico"))
+        app.geometry(
+            f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+        app.iconbitmap(default=os.path.join(ICONS_DIR, "Blank.ico"))
         app.title("Brazo clasificador")
 
         def sizex(x):
@@ -106,18 +103,24 @@ class Principal():
             return int((y/100) * window_height)
 
         def on_closing():
-            
+
             if messagebox.askokcancel("Salir", "¿Esta seguro que quieres salir?"):
                 try:
                     Vision.apagar()
                 except:
                     pass
+                try:
+                    Funciones.desconectar()
+                except:
+                    pass
                 app.destroy()
 
-        #-----------------------------------------------------------------
-
+        # -----------------------------------------------------------------
 
         def encender():
+            '''
+            Enciende la cámara seleccionada
+            '''
             if h.get() == 1:
                 if len(devices) > 0:
                     switchcam.configure(text="Cámara: ON")
@@ -126,16 +129,18 @@ class Principal():
                     visualizar()
                 else:
                     messagebox.showinfo("Info", "No hay opciones disponibles")
-                    
+
             else:
                 switchcam.configure(text="Cámara: OFF")
                 lblVideo.configure(image=camimg)
                 lblVideo.image = camimg
                 Vision.apagar()
 
-
         def visualizar():
-            try:     
+            '''
+            Recibe los fotogramas de video
+            '''
+            try:
                 ret, frame = Vision.capturar()
                 if ret:
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -145,138 +150,154 @@ class Principal():
                     lblVideo.image = img
                     lblVideo.after(10, visualizar)
                     if Vision.actualizar:
-                        Principal.insertarDatos()
+                        Principal.mostrarDatos()
                         Vision.actualizar = False
                 else:
                     lblVideo.place_forget()
-                    #Vision.apagar()
-                
+
             except:
                 lblVideo.place_forget()
-                
-
 
         def BuscarPuertos():
             global puertos
             puertos = Funciones.serial_ports()
-            menubtn.configure(values=list(puertos.keys()),require_redraw=True)
-            menubtn.set("Seleccione un Puerto")
-            
+            var = list(puertos.keys())
+            menubtn.configure(values=var, require_redraw=True)
+            if len(var) > 0:
+                menubtn.set(var[0])
+            else:
+                menubtn.set("Seleccione un Puerto")
+
         def BuscarCamaras():
             global devices
             devices = Vision.listarCamaras()
-            menuCam.configure(values=list(devices.keys()),require_redraw=True)
-            menuCam.set("Seleccione una Cámara")
-
+            var = list(devices.keys())
+            menuCam.configure(values=var, require_redraw=True)
+            if len(var) > 0:
+                menuCam.set(var[0])
+            else:
+                menuCam.set("Seleccione una Cámara")
 
         def Conexion():
             global puertos
-            
+
             if Funciones.verificar():
                 Funciones.desconectar()
                 messagebox.showinfo("Info", "Desconectado")
-                button_C.configure(text="Conectar",fg_color="red",hover_color="green")
+                button_C.configure(
+                    text="Conectar", fg_color="red", hover_color="green")
             else:
                 if len(puertos) > 0:
                     Funciones.conectar(puertos[menubtn.get()])
                     if Funciones.verificar():
                         messagebox.showinfo("Info", "Conexión exitosa")
-                        button_C.configure(text="Desconectar",fg_color="green",hover_color="red")
+                        button_C.configure(
+                            text="Desconectar", fg_color="green", hover_color="red")
                     else:
-                        messagebox.showerror("Error", "Hubo un problema con la conexión")
+                        messagebox.showerror(
+                            "Error", "Hubo un problema con la conexión")
                 else:
                     messagebox.showinfo("Info", "No hay opciones disponibles")
 
-        b = tkinter.IntVar()
-        b.set(1)
-
         h = tkinter.IntVar()
         h.set(0)
-        
-        reloadCamera_image = ImageTk.PhotoImage(Image.open(os.path.join(ICONS_DIR,"Reload_CAM.png")).resize((35, 25)))
-        reload_image = ImageTk.PhotoImage(Image.open(os.path.join(ICONS_DIR,"Reload_COM.png")).resize((50, 25)))
+
+        reloadCamera_image = ImageTk.PhotoImage(Image.open(
+            os.path.join(ICONS_DIR, "Reload_CAM.png")).resize((35, 25)))
+        reload_image = ImageTk.PhotoImage(Image.open(
+            os.path.join(ICONS_DIR, "Reload_COM.png")).resize((50, 25)))
 
         app.grid_columnconfigure(1, weight=1)
         app.grid_rowconfigure(0, weight=1)
 
-        frameOptions = ctk.CTkFrame(master=app,  width=sizex(52), height=sizey(20))
-        frameOptions.grid(row=0, column=0, sticky="nswe",padx=20, pady=20)
+        frameOptions = ctk.CTkFrame(
+            master=app,  width=sizex(52), height=sizey(20))
+        frameOptions.grid(row=0, column=0, sticky="nswe", padx=20, pady=20)
 
         frame_right = ctk.CTkFrame(master=app)
         frame_right.grid(row=0, column=1, sticky="nswe", padx=20, pady=20)
 
         frame_camara = ctk.CTkFrame(master=app, width=sizex(52), height=sizey(72),
-                                                corner_radius=0)
-        frame_camara.grid(row=1, column=0, sticky="nswe",padx=20, pady=20)
+                                    corner_radius=0)
+        frame_camara.grid(row=1, column=0, sticky="nswe", padx=20, pady=20)
 
         frame_option = ctk.CTkFrame(master=app)
         frame_option.grid(row=1, column=1, sticky="nswe", padx=20, pady=20)
 
         # ============ frameOptions ============
         # configure grid layout (1x11)
-        frameOptions.grid_rowconfigure(0, minsize=10)   # empty row with minsize as spacing
+        # empty row with minsize as spacing
+        frameOptions.grid_rowconfigure(0, minsize=10)
         frameOptions.grid_rowconfigure(5, weight=1)  # empty row as spacing
-        frameOptions.grid_rowconfigure(8, minsize=20)    # empty row with minsize as spacing
-        frameOptions.grid_rowconfigure(11, minsize=10)  # empty row with minsize as spacing
+        # empty row with minsize as spacing
+        frameOptions.grid_rowconfigure(8, minsize=20)
+        # empty row with minsize as spacing
+        frameOptions.grid_rowconfigure(11, minsize=10)
 
-        devices = Vision.listarCamaras()
-        menuCam = ctk.CTkOptionMenu(frameOptions,width=sizex(22),values=list(devices.keys()))
+        devices = {}
+        menuCam = ctk.CTkOptionMenu(frameOptions, width=sizex(22))
         menuCam.place(x=sizex(3), y=sizey(3))
-        menuCam.set("Seleccione una Cámara")
+        BuscarCamaras()
 
+        button_RC = ctk.CTkButton(master=frameOptions, image=reloadCamera_image, text="Buscar",
+                                  compound="right", command=BuscarCamaras)
+        button_RC.place(x=sizex(27), y=sizey(3), width=sizex(9))
 
-        button_RC = ctk.CTkButton(master=frameOptions,image=reloadCamera_image, text="Buscar",
-                                                        compound="right", command=BuscarCamaras)
-        button_RC.place(x=sizex(27), y=sizey(3),width=sizex(9))
-
-        switchcam = ctk.CTkSwitch(master=frameOptions,text='Cámara: OFF',variable=h, offvalue=0, onvalue=1,command=encender)
+        switchcam = ctk.CTkSwitch(master=frameOptions, text='Cámara: OFF',
+                                  variable=h, offvalue=0, onvalue=1, command=encender)
         switchcam.place(x=sizex(38), y=sizey(4))
 
-        puertos = Funciones.serial_ports()
-        menubtn = ctk.CTkOptionMenu(frameOptions,width=sizex(22),values=list(puertos.keys()))
+        puertos = {}
+        menubtn = ctk.CTkOptionMenu(frameOptions, width=sizex(22))
         menubtn.place(x=sizex(3), y=sizey(12))
-        menubtn.set("Seleccione un Puerto")
+        BuscarPuertos()
 
-
-        button_R = ctk.CTkButton(master=frameOptions,image=reload_image, text="Buscar",
-                                    compound="right", command=BuscarPuertos)
-        button_R.place(x=sizex(27), y=sizey(12),width=sizex(9))
+        button_R = ctk.CTkButton(master=frameOptions, image=reload_image, text="Buscar",
+                                 compound="right", command=BuscarPuertos)
+        button_R.place(x=sizex(27), y=sizey(12), width=sizex(9))
 
         button_C = ctk.CTkButton(master=frameOptions,
-                                fg_color="red",
-                                hover_color="green",
-                                text='Conectar', command=Conexion)
-        button_C.place(x=sizex(38), y=sizey(12),width=sizex(10))
+                                 fg_color="red",
+                                 hover_color="green",
+                                 text='Conectar', command=Conexion)
+        button_C.place(x=sizex(38), y=sizey(12), width=sizex(10))
 
-        camimg = ImageTk.PhotoImage(Image.open(os.path.join(ICONS_DIR,"FondoCam.png")))
-        lblVideo = ctk.CTkLabel(frame_camara,text="",image=camimg)
+        camimg = ImageTk.PhotoImage(Image.open(
+            os.path.join(ICONS_DIR, "FondoCam.png")))
+        lblVideo = ctk.CTkLabel(frame_camara, text="", image=camimg)
         lblVideo.pack(padx=sizex(0.7), pady=sizey(1))
-        
-        
-        imgR = ImageTk.PhotoImage(Image.open(os.path.join(ICONS_DIR,"ImagenR.png")).resize((75,100)))
-        imgG = ImageTk.PhotoImage(Image.open(os.path.join(ICONS_DIR,"ImagenG.png")).resize((75,100)))
-        imgB = ImageTk.PhotoImage(Image.open(os.path.join(ICONS_DIR,"ImagenB.png")).resize((75,100)))
-        
-        label_R = ctk.CTkLabel(master=frame_right,image=imgR,text="0",text_color="Red",compound="top")
-        label_R.place(x=sizex(2),y=sizey(1))
+
+        imgR = ImageTk.PhotoImage(Image.open(os.path.join(
+            ICONS_DIR, "ImagenR.png")).resize((75, 100)))
+        imgG = ImageTk.PhotoImage(Image.open(os.path.join(
+            ICONS_DIR, "ImagenG.png")).resize((75, 100)))
+        imgB = ImageTk.PhotoImage(Image.open(os.path.join(
+            ICONS_DIR, "ImagenB.png")).resize((75, 100)))
+
+        label_R = ctk.CTkLabel(
+            master=frame_right, image=imgR, text="0", text_color="Red", compound="top")
+        label_R.place(x=sizex(2), y=sizey(1))
         label_R.configure(font=("Cambria", 15))
-        label_G = ctk.CTkLabel(master=frame_right,image=imgG,text="0",text_color="Green",compound="top")
-        label_G.place(x=sizex(15),y=sizey(1))
+        label_G = ctk.CTkLabel(
+            master=frame_right, image=imgG, text="0", text_color="Green", compound="top")
+        label_G.place(x=sizex(15), y=sizey(1))
         label_G.configure(font=("Cambria", 15))
-        label_B = ctk.CTkLabel(master=frame_right,image=imgB,text="0",text_color="Skyblue",compound="top")
-        label_B.place(x=sizex(29),y=sizey(1))
+        label_B = ctk.CTkLabel(
+            master=frame_right, image=imgB, text="0", text_color="Skyblue", compound="top")
+        label_B.place(x=sizex(29), y=sizey(1))
         label_B.configure(font=("Cambria", 15))
-        
-        
+
         style = ttk.Style()
         style.configure("Treeview.Heading", font=(None, 15))
         style.theme_use("clam")
-        style.configure("Treeview",font=("Cambria", 12),rowheight=25,background="grey25",foreground="white",fieldbackground="grey25")
-        
-        treeview = ttk.Treeview(frame_option, selectmode="extended", columns=(1,2,3), height=18)
-        treeview.place(x=sizex(1),y=sizey(1))
+        style.configure("Treeview", font=("Cambria", 12), rowheight=25,
+                        background="grey25", foreground="white", fieldbackground="grey25")
 
-        treeview.column("#0",anchor='c', width=210)
+        treeview = ttk.Treeview(
+            frame_option, selectmode="extended", columns=(1, 2, 3), height=18)
+        treeview.place(x=sizex(1), y=sizey(1))
+
+        treeview.column("#0", anchor='c', width=210)
         treeview.column(1, anchor='c', width=100)
         treeview.column(2, anchor='c', width=100)
         treeview.column(3, anchor='c', width=100)
@@ -287,14 +308,12 @@ class Principal():
         treeview.heading(3, text="Azul", anchor='center')
 
         filename = f'Data({datetime.now().strftime("%d_%m_%y")}).csv'
-        Principal.insertarDatos()
-        
+        Principal.mostrarDatos()
 
         app.protocol("WM_DELETE_WINDOW", on_closing)
-
         app.mainloop()
-    
-    
+
+
 if __name__ == "__main__":
     principal = Principal()
     principal.App()

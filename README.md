@@ -5,7 +5,7 @@ Una interfaz de control desarrollada utilizando *Tkinter* y *[customTkinter][3]*
 | _`Index.py` Interfaz de control del brazo_
 
 # Librería de listado de cámaras
-**OpenCV** No tiene una API para para enumerar las cámaras, pero gracias al aporte de [yushulx][0] con su proyecto [python-capture-device-list][1] seguimos los pasos para poder listar las cámaras para nuestro proyecto. 
+Un inconveniete de trabajar con Python y **OpenCV** es que no se cuenta con una API para enumerar los dispositvos de captura de video, pero este inconveniente fue solucionado gracias al aporte de [yushulx][0] con su proyecto [python-capture-device-list][1]. 
 
 ## Environment   
 * [Microsoft C++ Build Tools][2]

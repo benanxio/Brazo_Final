@@ -1,5 +1,6 @@
 # Sistema de vision para un brazo robótico
 Una interfaz de control desarrollada utilizando *Tkinter* y *[customTkinter][3]* para controlar un brazo robótico clasificador de objetos por colores con Arduino.
+# Interfaz
 ![](Resources/Index.png)
 | _`Index.py` Interfaz de control del brazo_
 

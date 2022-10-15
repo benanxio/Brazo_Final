@@ -3,3 +3,5 @@ opencv-python
 Pillow
 customtkinter
 numpy
+pandas
+scikit-build

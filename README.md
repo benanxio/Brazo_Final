@@ -11,6 +11,7 @@ Un inconveniete de trabajar con Python y **OpenCV** es que no se cuenta con una 
 * [Microsoft C++ Build Tools][2]
 * Python 3.6 o superior
 * requirements.txt
+* Virtualenv
 
 ## Recomendaciones
 * Ejecutar en entorno virtual para evitar problemas

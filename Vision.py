@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import time
 import Funciones
-import device
 from threading import Thread
 from Index import Principal
 
@@ -37,16 +36,15 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 
 
 def listarCamaras():
-
-    global devices
-    devices = {}
-
+    import device
+    
+    dispositivos = {}
     device_list = device.getDeviceList()
 
     for index, camera in enumerate(device_list):
-        devices.update({str(camera[0]): index})
+        dispositivos.update({str(camera[0]): index})
 
-    return devices
+    return dispositivos
 
 
 def pError(val, error=0.01):
@@ -90,7 +88,7 @@ def Confirmacion(val):
     while val:
         val, c = Funciones.recibirConfirmacion()
         if val == False:
-            Principal.GuardarCSV(Principal, c)
+            Principal.GuardarDB(Principal, c)
             actualizar = True
     clasificar = False
     previo = 0
@@ -160,7 +158,7 @@ def capturar():
     global cap, clascolor, frame
     ret, frame = cap.read()
     if ret:
-        frame = cv2.flip(frame, 1)
+        #frame = cv2.flip(frame, 1)
 
         frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -171,8 +169,6 @@ def capturar():
         maskAzul = cv2.inRange(frameHSV, azul[0], azul[1])
         maskGreen = cv2.inRange(frameHSV, verde[0], verde[1])
         
-        
-
         if maskRed[maskRed >= 255].shape[0] > distancia:
             clascolor = "R"
             dibujar(maskRed1, colores["Rojo"])

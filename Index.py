@@ -1,6 +1,4 @@
 
-from cgitb import text
-from doctest import master
 import tkinter
 import customtkinter as ctk
 from PIL import Image, ImageTk
@@ -14,24 +12,25 @@ from datetime import datetime
 
 
 class Principal():
-    
+
     def Conexion():
-        #Creacion de bade de datos
+        # Creacion de bade de datos
         db = sqlite3.connect("Data.db")
         conn = db.cursor()
-        #Creacion de la tabla
-        conn.execute("CREATE TABLE IF NOT EXISTS Clasificacion (fecha DATETIME, Rojo INTEGER, Verde INTEGER, Azul INTEGER)")
+        # Creacion de la tabla
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS Clasificacion (fecha DATETIME, Rojo INTEGER, Verde INTEGER, Azul INTEGER)")
         db.commit()
-        
-        return db,conn
 
-    def GuardarCSV(self, color):
-        
-        db,conn = Principal.Conexion()
-        
+        return db, conn
+
+    def GuardarDB(self, color):
+
+        db, conn = Principal.Conexion()
+
         now = datetime.now()
         fecha = now.strftime("%Y-%m-%d %H:%M:%S")
-        
+
         data = [0, 0, 0]
         if color == "R":
             data[0] = 1
@@ -40,34 +39,38 @@ class Principal():
         if color == "B":
             data[2] = 1
 
-        conn.execute(f"INSERT INTO Clasificacion VALUES ('{fecha}',{data[0]},{data[1]},{data[2]})")
+        conn.execute(
+            f"INSERT INTO Clasificacion VALUES ('{fecha}',{data[0]},{data[1]},{data[2]})")
         db.commit()
         conn.close()
-        
+
     def mostrarDatos():
         global treeview, label_R, label_G, label_B
-        
+
         treeview.delete(*treeview.get_children())
-        
+
         now = datetime.now()
         fecha = now.strftime("%Y-%m-%d")
-        
-        db,conn = Principal.Conexion()
-        
-        #Totales
-        conn.execute(f"SELECT fecha, SUM (Rojo),SUM(Verde),SUM(Azul) FROM Clasificacion WHERE DATE(fecha)='{fecha}'")
+
+        db, conn = Principal.Conexion()
+
+        # Totales
+        conn.execute(
+            f"SELECT fecha, SUM (Rojo),SUM(Verde),SUM(Azul) FROM Clasificacion WHERE DATE(fecha)='{fecha}'")
         val = conn.fetchone()
-        if val[0]!=None:
+        if val[0] != None:
             label_R.configure(text=f"{val[1]}")
             label_G.configure(text=f"{val[2]}")
             label_B.configure(text=f"{val[3]}")
-        
-        #Consulta de datos totales
-        conn.execute(f"SELECT * FROM Clasificacion WHERE DATE(fecha)='{fecha}'")
+
+        # Consulta de datos totales
+        conn.execute(
+            f"SELECT * FROM Clasificacion WHERE DATE(fecha)='{fecha}'")
         valores = conn.fetchall()
-        if len(valores)>0:
+        if len(valores) > 0:
             for dato in reversed(valores):
-                treeview.insert("", 'end', text=dato[0], values=(dato[1], dato[2], dato[3]))
+                treeview.insert("", 'end', text=dato[0], values=(
+                    dato[1], dato[2], dato[3]))
 
         db.close()
 
@@ -121,7 +124,7 @@ class Principal():
         def cambiarRango(self):
             Vision.distancia = r.get() * 10
             lblDistancia.configure(text=f"Distancia: {r.get() * 10}")
-            
+
         def encender():
             '''
             Enciende la cámara seleccionada
@@ -130,6 +133,7 @@ class Principal():
                 if len(devices) > 0:
                     switchcam.configure(text="Cámara: ON")
                     Vision.encender(devices[menuCam.get()])
+                    #button_RC.configure(state='disabled')
                     messagebox.showinfo("Info", "Camara Encendida")
                     visualizar()
                 else:
@@ -137,6 +141,7 @@ class Principal():
 
             else:
                 switchcam.configure(text="Cámara: OFF")
+                #button_RC.configure(state='normal')
                 lblVideo.configure(image=camimg)
                 lblVideo.image = camimg
                 Vision.apagar()
@@ -248,6 +253,7 @@ class Principal():
 
         button_RC = ctk.CTkButton(master=frameOptions, image=reloadCamera_image, text="Buscar",
                                   compound="right", command=BuscarCamaras)
+        button_RC.configure(state='disabled')
         button_RC.place(x=sizex(27), y=sizey(3), width=sizex(9))
 
         switchcam = ctk.CTkSwitch(master=frameOptions, text='Cámara: OFF',
@@ -268,11 +274,14 @@ class Principal():
                                  hover_color="#08bc64",
                                  text='Conectar', command=Conexion)
         button_C.place(x=sizex(38), y=sizey(10), width=sizex(9))
-        
-        rangoSlider = ctk.CTkSlider(master=frameOptions,from_=10,to=2000,progress_color='#206ca4',variable=r,command=cambiarRango)
-        rangoSlider.place(x=sizex(2.5), y=sizey(16),width=sizex(34),height=sizey(3))
-        
-        lblDistancia = ctk.CTkLabel(master=frameOptions,text=f"Distancia: {r.get()}")
+
+        rangoSlider = ctk.CTkSlider(master=frameOptions, from_=10, to=2000,
+                                    progress_color='#206ca4', variable=r, command=cambiarRango)
+        rangoSlider.place(x=sizex(2.5), y=sizey(
+            16), width=sizex(34), height=sizey(3))
+
+        lblDistancia = ctk.CTkLabel(
+            master=frameOptions, text=f"Distancia: {r.get()}")
         lblDistancia.place(x=sizex(37), y=sizey(15))
 
         camimg = ImageTk.PhotoImage(Image.open(

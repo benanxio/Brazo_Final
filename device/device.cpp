@@ -89,7 +89,7 @@ HRESULT EnumerateDevices(REFGUID category, IEnumMoniker **ppEnum)
 	return hr;
 }
 
-PyObject* DisplayDeviceInformation(IEnumMoniker *pEnum)
+PyObject *DisplayDeviceInformation(IEnumMoniker *pEnum)
 {
 	// Create an empty Python list
 	PyObject* pyList = PyList_New(0); 

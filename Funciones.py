@@ -3,6 +3,7 @@ import serial
 from serial.tools import list_ports_windows
 
 ser = serial.Serial()
+ports = ""
 
 def serial_ports():
     '''

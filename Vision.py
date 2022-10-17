@@ -1,3 +1,4 @@
+from array import array
 import cv2
 import numpy as np
 import time
@@ -13,8 +14,8 @@ clascolor = ""
 actualizar = False  # Se accede desde el archivo Index para actualizar los datos recibidos
 
 
-azul = np.array([[100, 100, 20],
-                 [125, 255, 255]], np.uint8)
+azul = np.array([[90, 100, 20],
+                [120, 255, 255]], np.uint8)
 
 verde = np.array([[25, 52, 72],
                   [102, 255, 255]], np.uint8)
@@ -39,10 +40,6 @@ def listarCamaras():
     devices = {}
 
     device_list = device.getDeviceList()
-    if len(device_list) > 1:
-        deviceP = device_list[0]
-        device_list[0] = device_list[1]
-        device_list[1] = deviceP
 
     for index, camera in enumerate(device_list):
         devices.update({str(camera[0]): index})
@@ -67,18 +64,19 @@ def dibujar(mask, color):
 
     contornos, _ = cv2.findContours(
         mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(frame, contornos, -1, (255, 0, 0), 4)
     for c in contornos:
         area = cv2.contourArea(c)
-        if area > 6000:
+        if area > 500:
             detectado = True
             M = cv2.moments(c)
             if (M["m00"] == 0):
                 M["m00"] = 1
             x = int(M["m10"]/M["m00"])
             y = int(M['m01']/M['m00'])
-            cv2.circle(frame, (x, y), 7, (0, 50, 150), -1)
-            cv2.putText(frame, f'{x},{y}', (x+10, y), font,
-                        1.0, (0, 50, 150), 2, cv2.LINE_AA)
+            cv2.circle(frame, (x, y), 7, (0, 0, 255), -1)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            cv2.putText(frame, '{},{}'.format(x, y), (x + 10, y), font, 1.2, (0, 0, 255), 2, cv2.LINE_AA)
             nuevoContorno = cv2.convexHull(c)
             cv2.drawContours(frame, [nuevoContorno], 0, color, 3)
             if Funciones.verificar():
@@ -154,7 +152,7 @@ def capturar():
     global cap, clascolor, frame
     ret, frame = cap.read()
     if ret:
-        frame = cv2.flip(frame, 1)
+        #frame = cv2.flip(frame, 1)
 
         frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -165,10 +163,10 @@ def capturar():
         maskAzul = cv2.inRange(frameHSV, azul[0], azul[1])
         maskGreen = cv2.inRange(frameHSV, verde[0], verde[1])
 
-        if maskRed[maskRed >= 255].shape[0] > 10000:
+        if maskRed[maskRed >= 255].shape[0] > 5000:
             clascolor = "R"
             dibujar(maskRed1, colores["Rojo"])
-        elif maskGreen[maskGreen >= 255].shape[0] > 10000:
+        elif maskGreen[maskGreen >= 255].shape[0] > 5000:
             clascolor = "G"
             dibujar(maskGreen, colores["Verde"])
         elif maskAzul[maskAzul >= 255].shape[0] > 10000:

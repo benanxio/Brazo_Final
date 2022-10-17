@@ -5,69 +5,70 @@ from PIL import Image, ImageTk
 from tkinter import messagebox, ttk
 import Funciones
 import Vision
-
+import sqlite3
 import cv2
-import csv
-import pandas as pd
 import os
 from datetime import datetime
 
 
 class Principal():
+    
+    def Conexion():
+        #Creacion de bade de datos
+        db = sqlite3.connect("Data.db")
+        conn = db.cursor()
+        #Creacion de la tabla
+        conn.execute("CREATE TABLE IF NOT EXISTS Clasificacion (fecha DATETIME, Rojo INTEGER, Verde INTEGER, Azul INTEGER)")
+        db.commit()
+        
+        return db,conn
 
     def GuardarCSV(self, color):
+        
+        db,conn = Principal.Conexion()
+        
         now = datetime.now()
-        data = [now.strftime("%d/%m/%y %H:%M:%S"), 0, 0, 0]
+        fecha = now.strftime("%Y-%m-%d %H:%M:%S")
+        
+        data = [0, 0, 0]
         if color == "R":
-            data[1] = 1
+            data[0] = 1
         if color == "G":
-            data[2] = 1
+            data[1] = 1
         if color == "B":
-            data[3] = 1
+            data[2] = 1
         global filename
 
-        filename = f'Data({now.strftime("%d_%m_%y")}).csv'
-
-        datos = {
-            'Fecha': data[0],
-            'Rojo': data[1],
-            'Verde': data[2],
-            'Azul': data[3]
-        }
-
-        if os.path.isfile(filename):
-            with open(filename, 'a', newline='') as my_file:
-                writer = csv.DictWriter(
-                    my_file, fieldnames=list(datos.keys()), delimiter=',')
-                writer.writerow(datos)
-                my_file.close()
-        else:
-            with open(filename, 'w', newline='') as my_file:
-                writer = csv.DictWriter(
-                    my_file, fieldnames=list(datos.keys()), delimiter=',')
-                writer.writeheader()
-                writer.writerow(datos)
-                my_file.close()
-
+        conn.execute(f"INSERT INTO Clasificacion VALUES ('{fecha}',{data[0]},{data[1]},{data[2]})")
+        db.commit()
+        conn.close()
+        
     def mostrarDatos():
         global treeview, label_R, label_G, label_B, filename
+        
         treeview.delete(*treeview.get_children())
+        
+        now = datetime.now()
+        fecha = now.strftime("%Y-%m-%d")
+        
+        db,conn = Principal.Conexion()
+        
+        #Totales
+        conn.execute(f"SELECT fecha, SUM (Rojo),SUM(Verde),SUM(Azul) FROM Clasificacion WHERE DATE(fecha)='{fecha}'")
+        val = conn.fetchone()
+        if val[0]!=None:
+            label_R.configure(text=f"{val[1]}")
+            label_G.configure(text=f"{val[2]}")
+            label_B.configure(text=f"{val[3]}")
+        
+        #Consulta de datos totales
+        conn.execute(f"SELECT * FROM Clasificacion WHERE DATE(fecha)='{fecha}'")
+        valores = conn.fetchall()
+        if len(valores)>0:
+            for dato in reversed(valores):
+                treeview.insert("", 'end', text=dato[0], values=(dato[1], dato[2], dato[3]))
 
-        if os.path.isfile(filename):
-
-            datos = pd.read_table(filename, sep=',')
-            datosT = datos.to_numpy().tolist()
-            val = datos.sum().values.tolist()[1:]
-            label_R.configure(text=f"{val[0]}")
-            label_G.configure(text=f"{val[1]}")
-            label_B.configure(text=f"{val[2]}")
-
-            for dato in reversed(datosT):
-                treeview.insert("", 'end', text=dato[0], values=(
-                    dato[1], dato[2], dato[3]))
-
-        else:
-            pass
+        db.close()
 
     def App(self):
         global treeview, label_R, label_G, label_B, puertos, devices, filename

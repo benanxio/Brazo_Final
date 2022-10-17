@@ -12,6 +12,9 @@ Un inconveniete de trabajar con Python y **OpenCV** es que no se cuenta con una 
 * Python 3.6 o superior
 * requirements.txt
 
+## Recomendaciones
+* Ejecutar en entorno virtual para evitar problemas
+
 [0]:https://github.com/yushulx
 [1]:https://github.com/yushulx/python-capture-device-list
 [2]:https://visualstudio.microsoft.com/es/downloads/

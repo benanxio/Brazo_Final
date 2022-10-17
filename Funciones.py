@@ -18,7 +18,6 @@ def serial_ports():
         
     return p
 
-
 def conectar(option):
     '''
     Realiza la conexión con el puerto COM seleccionado
@@ -39,7 +38,6 @@ def desconectar():
     '''
     global ser
     ser.close()
-
 
 def verificar():
     '''
@@ -85,4 +83,4 @@ def recibirConfirmacion():
             print(f"Recibido: {b}")
             return True,b
     else:
-        return True,""
+        return True,""                                                                                            

@@ -1,9 +1,9 @@
-from array import array
 import cv2
 import numpy as np
 import time
 import Funciones
 import device
+from threading import Thread
 from Index import Principal
 
 clasificar = False
@@ -12,6 +12,7 @@ inicio, previo = 0, 0  # Para contar los segundos de espera
 tDetect = 3  # Tiempo de espera antes de la clasificacion
 clascolor = ""
 actualizar = False  # Se accede desde el archivo Index para actualizar los datos recibidos
+clasificando = False
 
 
 azul = np.array([[90, 100, 20],
@@ -64,7 +65,7 @@ def dibujar(mask, color):
 
     contornos, _ = cv2.findContours(
         mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(frame, contornos, -1, (255, 0, 0), 4)
+    #cv2.drawContours(frame, contornos, -1, (255, 0, 0), 4)
     for c in contornos:
         area = cv2.contourArea(c)
         if area > 500:
@@ -79,14 +80,30 @@ def dibujar(mask, color):
             cv2.putText(frame, '{},{}'.format(x, y), (x + 10, y), font, 1.2, (0, 0, 255), 2, cv2.LINE_AA)
             nuevoContorno = cv2.convexHull(c)
             cv2.drawContours(frame, [nuevoContorno], 0, color, 3)
-            if Funciones.verificar():
+            if Funciones.verificar() and clasificando == False:
                 # Funciones.enviar(x,y)
                 clasificacion(color)
+                
+            if clasificando:
+                centro = (frame.shape[1]//2, frame.shape[0]//2)
+                cv2.putText(frame, 'Clasificando', (centro[0]-120, centro[1]), font, 1.5, (15, 15, 15), 3, cv2.LINE_AA)
 
+def Confirmacion(val):
+    global actualizar,clasificar,previo,detectado,clasificando
+    
+    while val:
+        val, c = Funciones.recibirConfirmacion()
+        if val == False:
+            Principal.GuardarCSV(Principal, c)
+            actualizar = True
+    clasificar = False
+    previo = 0
+    detectado = False
+    clasificando = False
 
 def clasificacion(color, Draw=True):
 
-    global clasificar, inicio, erx, ery, previo, detectado, frame, clascolor, actualizar
+    global clasificar, inicio, erx, ery, previo, detectado, frame, clascolor, actualizar,clasificando
 
     if detectado and clasificar == False:
         clasificar = True
@@ -110,16 +127,11 @@ def clasificacion(color, Draw=True):
             if previo == tDetect and cRango(x, erx) and cRango(y, ery):
 
                 val = Funciones.enviarColor(x, y, clascolor)
-
-                while val:
-                    val, c = Funciones.recibirConfirmacion()
-                    if val == False:
-                        Principal.GuardarCSV(Principal, c)
-                        actualizar = True
-
-                clasificar = False
-                previo = 0
-                detectado = False
+                clasificando = True
+                t1 = Thread(target = Confirmacion,args=(val,))
+                #t1.setDaemon(True)
+                t1.start()
+                
             elif previo < tDetect and cRango(x, erx) and cRango(y, ery):
                 pass
 

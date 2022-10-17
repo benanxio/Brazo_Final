@@ -1,4 +1,6 @@
 
+from cgitb import text
+from doctest import master
 import tkinter
 import customtkinter as ctk
 from PIL import Image, ImageTk
@@ -37,14 +39,13 @@ class Principal():
             data[1] = 1
         if color == "B":
             data[2] = 1
-        global filename
 
         conn.execute(f"INSERT INTO Clasificacion VALUES ('{fecha}',{data[0]},{data[1]},{data[2]})")
         db.commit()
         conn.close()
         
     def mostrarDatos():
-        global treeview, label_R, label_G, label_B, filename
+        global treeview, label_R, label_G, label_B
         
         treeview.delete(*treeview.get_children())
         
@@ -71,7 +72,7 @@ class Principal():
         db.close()
 
     def App(self):
-        global treeview, label_R, label_G, label_B, puertos, devices, filename
+        global treeview, label_R, label_G, label_B, puertos, devices
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         ICONS_DIR = os.path.join(BASE_DIR, 'Resources')
@@ -117,7 +118,10 @@ class Principal():
                 app.destroy()
 
         # -----------------------------------------------------------------
-
+        def cambiarRango(self):
+            Vision.distancia = r.get() * 10
+            lblDistancia.configure(text=f"Distancia: {r.get() * 10}")
+            
         def encender():
             '''
             Enciende la cámara seleccionada
@@ -186,7 +190,7 @@ class Principal():
                 Funciones.desconectar()
                 messagebox.showinfo("Info", "Desconectado")
                 button_C.configure(
-                    text="Conectar", fg_color="red", hover_color="green")
+                    text="Conectar", fg_color="#ff2c24", hover_color="#08bc64")
             else:
                 if len(puertos) > 0:
                     Funciones.conectar(puertos[menubtn.get()])
@@ -202,6 +206,8 @@ class Principal():
 
         h = tkinter.IntVar()
         h.set(0)
+        r = tkinter.IntVar()
+        r.set(750)
 
         reloadCamera_image = ImageTk.PhotoImage(Image.open(
             os.path.join(ICONS_DIR, "Reload_CAM.png")).resize((35, 25)))
@@ -250,18 +256,24 @@ class Principal():
 
         puertos = {}
         menubtn = ctk.CTkOptionMenu(frameOptions, width=sizex(22))
-        menubtn.place(x=sizex(3), y=sizey(12))
+        menubtn.place(x=sizex(3), y=sizey(10))
         BuscarPuertos()
 
         button_R = ctk.CTkButton(master=frameOptions, image=reload_image, text="Buscar",
                                  compound="right", command=BuscarPuertos)
-        button_R.place(x=sizex(27), y=sizey(12), width=sizex(9))
+        button_R.place(x=sizex(27), y=sizey(10), width=sizex(9))
 
         button_C = ctk.CTkButton(master=frameOptions,
-                                 fg_color="red",
-                                 hover_color="green",
+                                 fg_color="#ff2c24",
+                                 hover_color="#08bc64",
                                  text='Conectar', command=Conexion)
-        button_C.place(x=sizex(38), y=sizey(12), width=sizex(10))
+        button_C.place(x=sizex(38), y=sizey(10), width=sizex(9))
+        
+        rangoSlider = ctk.CTkSlider(master=frameOptions,from_=10,to=2000,progress_color='#206ca4',variable=r,command=cambiarRango)
+        rangoSlider.place(x=sizex(2.5), y=sizey(16),width=sizex(34),height=sizey(3))
+        
+        lblDistancia = ctk.CTkLabel(master=frameOptions,text=f"Distancia: {r.get()}")
+        lblDistancia.place(x=sizex(37), y=sizey(15))
 
         camimg = ImageTk.PhotoImage(Image.open(
             os.path.join(ICONS_DIR, "FondoCam.png")))
@@ -276,15 +288,15 @@ class Principal():
             ICONS_DIR, "ImagenB.png")).resize((75, 100)))
 
         label_R = ctk.CTkLabel(
-            master=frame_right, image=imgR, text="0", text_color="Red", compound="top")
+            master=frame_right, image=imgR, text="0", text_color="#ff2c24", compound="top")
         label_R.place(x=sizex(2), y=sizey(1))
         label_R.configure(font=("Cambria", 15))
         label_G = ctk.CTkLabel(
-            master=frame_right, image=imgG, text="0", text_color="Green", compound="top")
+            master=frame_right, image=imgG, text="0", text_color="#08bc64", compound="top")
         label_G.place(x=sizex(15), y=sizey(1))
         label_G.configure(font=("Cambria", 15))
         label_B = ctk.CTkLabel(
-            master=frame_right, image=imgB, text="0", text_color="Skyblue", compound="top")
+            master=frame_right, image=imgB, text="0", text_color="#08ace4", compound="top")
         label_B.place(x=sizex(29), y=sizey(1))
         label_B.configure(font=("Cambria", 15))
 
@@ -308,7 +320,7 @@ class Principal():
         treeview.heading(2, text="Verde", anchor='center')
         treeview.heading(3, text="Azul", anchor='center')
 
-        filename = f'Data({datetime.now().strftime("%d_%m_%y")}).csv'
+        cambiarRango(self)
         Principal.mostrarDatos()
 
         app.protocol("WM_DELETE_WINDOW", on_closing)

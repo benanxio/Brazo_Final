@@ -13,6 +13,7 @@ tDetect = 3  # Tiempo de espera antes de la clasificacion
 clascolor = ""
 actualizar = False  # Se accede desde el archivo Index para actualizar los datos recibidos
 clasificando = False
+distancia = 0
 
 
 azul = np.array([[90, 100, 20],
@@ -65,10 +66,9 @@ def dibujar(mask, color):
 
     contornos, _ = cv2.findContours(
         mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #cv2.drawContours(frame, contornos, -1, (255, 0, 0), 4)
     for c in contornos:
         area = cv2.contourArea(c)
-        if area > 500:
+        if area > distancia:
             detectado = True
             M = cv2.moments(c)
             if (M["m00"] == 0):
@@ -83,10 +83,6 @@ def dibujar(mask, color):
             if Funciones.verificar() and clasificando == False:
                 # Funciones.enviar(x,y)
                 clasificacion(color)
-                
-            if clasificando:
-                centro = (frame.shape[1]//2, frame.shape[0]//2)
-                cv2.putText(frame, 'Clasificando', (centro[0]-120, centro[1]), font, 1.5, (15, 15, 15), 3, cv2.LINE_AA)
 
 def Confirmacion(val):
     global actualizar,clasificar,previo,detectado,clasificando
@@ -164,7 +160,7 @@ def capturar():
     global cap, clascolor, frame
     ret, frame = cap.read()
     if ret:
-        #frame = cv2.flip(frame, 1)
+        frame = cv2.flip(frame, 1)
 
         frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -174,16 +170,22 @@ def capturar():
         maskRed = cv2.add(maskRed1, maskRed2)
         maskAzul = cv2.inRange(frameHSV, azul[0], azul[1])
         maskGreen = cv2.inRange(frameHSV, verde[0], verde[1])
+        
+        
 
-        if maskRed[maskRed >= 255].shape[0] > 5000:
+        if maskRed[maskRed >= 255].shape[0] > distancia:
             clascolor = "R"
             dibujar(maskRed1, colores["Rojo"])
-        elif maskGreen[maskGreen >= 255].shape[0] > 5000:
+        elif maskGreen[maskGreen >= 255].shape[0] > distancia:
             clascolor = "G"
             dibujar(maskGreen, colores["Verde"])
-        elif maskAzul[maskAzul >= 255].shape[0] > 10000:
+        elif maskAzul[maskAzul >= 255].shape[0] > distancia:
             dibujar(maskAzul, colores["Azul"])
             clascolor = "B"
+        
+        if clasificando:
+                centro = (frame.shape[1]//2, frame.shape[0]//2)
+                cv2.putText(frame, 'Clasificando', (centro[0]-120, centro[1]), font, 1.5, (15, 15, 15), 3, cv2.LINE_AA)
 
     return ret, frame
 
